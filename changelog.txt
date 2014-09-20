@@ -1,0 +1,5 @@
+[B]*** 0.0.2 ***[/B]
+- Fixes in subtitle downloading
+- Fixed encoding issues
+[B]*** 0.0.1 ***[/B]
+- Initial release
