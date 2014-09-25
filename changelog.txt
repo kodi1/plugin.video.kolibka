@@ -1,3 +1,5 @@
+[B]*** 0.0.3 ***[/B]
+- Fixed timeout exceptions in some cases
 [B]*** 0.0.2 ***[/B]
 - Fixes in subtitle downloading
 - Fixed encoding issues

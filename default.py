@@ -92,6 +92,8 @@ def VIDEOLINKS(mid,name):
     #Get Play URL and subtitles
     playurl = 'http://kolibka.com/download.php?mid=' + mid
     suburl = 'http://kolibka.com/download.php?sid=' + mid
+    print 'playurl:' + playurl
+    print 'suburl:' + suburl
     
     #Delete old subs
     files = os.listdir(ADDON_PATH)
@@ -108,7 +110,10 @@ def VIDEOLINKS(mid,name):
     
     #Save new sub to HDD
     SUBS_PATH = xbmc.translatePath(__Addon.getAddonInfo('path') + "/kolibkasub.rar")
-    urllib.urlretrieve(suburl, SUBS_PATH)
+    try:
+      urllib.urlretrieve(suburl, SUBS_PATH)
+    except:
+      print "Timed-out exception: " + suburl
     if os.path.getsize(SUBS_PATH) > 0:
       xbmc.sleep(500)
       xbmc.executebuiltin(('XBMC.Extract("%s","%s")' % (SUBS_PATH, ADDON_PATH)).encode('utf-8'), True)
