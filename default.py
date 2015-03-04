@@ -27,14 +27,14 @@ ADDON_PATH = xbmc.translatePath(__Addon.getAddonInfo('path'))
 
 UA = 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:38.0) Gecko/20100101 Firefox/38.0'
 
-parameters=''
-if prevedeni=='true':
+parameters = ''
+if prevedeni == 'true':
   parameters = parameters + '&showbg=yes'
-if sorting==0:
+if sorting == '0':
   parameters = parameters + '&orderby=moviedate'
-if sorting==1:
+if sorting == '1':
   parameters = parameters + '&orderby=subsdate'
-if sorting==2:
+if sorting == '2':
   parameters = parameters + '&orderby=moviename'
 
 def CATEGORIES():
