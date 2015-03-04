@@ -1,7 +1,13 @@
+[B]*** 0.0.9 ***[/B]
+- Fixed CoverArt images
+- Added sorting and filtering in addon settings
+
 [B]*** 0.0.3 ***[/B]
 - Fixed timeout exceptions in some cases
+
 [B]*** 0.0.2 ***[/B]
 - Fixes in subtitle downloading
 - Fixed encoding issues
+
 [B]*** 0.0.1 ***[/B]
 - Initial release

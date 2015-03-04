@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<settings>
+	<!-- General -->
+	<category label="30218">
+	  <setting label="30206" type="bool" id="prevedeni" default="false"/>
+	  <setting label="30207" type="enum" id="sorting" values="първо новите филми|първо новите преводи|по азбучен ред"/>
+	</category>
+</settings>
