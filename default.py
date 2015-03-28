@@ -6,6 +6,7 @@ import urllib
 import urllib2
 import time
 import requests
+import HTMLParser
 import xbmc
 import xbmcgui
 import xbmcplugin
@@ -24,7 +25,7 @@ searchicon = xbmc.translatePath(__Addon.getAddonInfo('path') + "/resources/searc
 SUBS_PATH = xbmc.translatePath(__Addon.getAddonInfo('path') + "/kolibkasub.rar")
 ADDON_PATH = xbmc.translatePath(__Addon.getAddonInfo('path'))
 
-UA = 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:36.0) Gecko/20100101 Firefox/36.0'
+UA = 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:38.0) Gecko/20100101 Firefox/38.0'
 
 parameters=''
 if prevedeni=='true':
@@ -70,16 +71,17 @@ def INDEX(url):
     newpage=re.compile('page=(.+?)&amp;orderby=movie&amp;.*\n.*alt="следваща страница"').findall(link)
 
     #Nachalo na obhojdaneto
+    pars = HTMLParser.HTMLParser()
     matcht = re.compile('<table((.|[\r\n])+?)</table').findall(link)
     for table in matcht:
       titl = str(table)
 
-      title1=' '
       thumbnail='DefaultVideo.png'
       matchp = re.compile('<img src=.*thumbs/(.+?)" alt="(.+?)"').findall(titl)
       for thumb,title1 in matchp:
         thumbnail = 'http://kolibka.com/thumbs/' + thumb
-        title1=urllib.unquote_plus(title1).decode('unicode_escape', errors='ignore').encode('ascii', errors='ignore')
+        #title1=urllib.unquote_plus(title1).decode('unicode_escape', errors='ignore').encode('ascii', errors='ignore')
+        title1=pars.unescape(title1).decode('unicode_escape').encode('ascii', 'ignore')
         title1=title1.replace('  ',' ')
         title1=title1.replace('/   ','')
         title1=title1.replace('/  ','')
@@ -93,7 +95,8 @@ def INDEX(url):
 
       match = re.compile('mid=(.+?)" title="(.+?)">(.+?)<').findall(titl)
       for mid,t,title2 in match:
-        title2=title2.decode('unicode_escape', errors='ignore').encode('ascii', errors='ignore')
+        #title2=urllib.unquote_plus(title2).decode('unicode_escape', errors='ignore').encode('ascii', errors='ignore')
+        title2=pars.unescape(title2).decode('unicode_escape').encode('ascii', 'ignore')
         title2=title2.replace('&quot;','"')
         title=title1+ ' :: '+title2
         #print title
@@ -161,7 +164,7 @@ def VIDEOLINKS(mid,name):
       for filename in files:
         if re.match(patern, filename):
           file = ADDON_PATH + '/' + filename
-          subfile = ADDON_PATH + '/kolibkasub.srt'
+          subfile = ADDON_PATH + '/kolibkasub.bg.srt'
           os.rename(file, subfile)
 
     #Play Selected Item
