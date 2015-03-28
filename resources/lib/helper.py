@@ -5,7 +5,6 @@ import re
 import sys
 import os
 from bs4 import BeautifulSoup
-from bs4 import SoupStrainer
 import time
 
 audio_l = {
@@ -48,23 +47,6 @@ def get_lang_data(d):
 
   return lan_info
 
-def old_get_all_episode(link):
-  s = BeautifulSoup(link, parse_only=SoupStrainer('table'))
-  for l in  s.findAll('a', href=re.compile(r'(?:download.php\?mid=\d+)')):
-    thumbnail = 'DefaultVideo.png'
-    title = ''
-    desc = ''
-    mid = l['href'].split('=')[1]
-    tmp = l.get_text().encode('utf-8', 'replace').strip()
-    for ss in l.find_parent('tr').find_previous_siblings('tr'):
-      if not ss.attrs:
-        if ss.td.a:
-          desc = clean_info(ss.td.a.get('onclick').encode('utf-8', 'replace').split("overlib('")[1].split("', CAPTION")[0])
-        title = ss.td.img.get('alt').encode('utf-8', 'replace')
-        thumbnail = ss.td.img.get('src').encode('utf-8', 'replace')
-    # addLink(tmp + '::' + title, mid, 2, thumbnail, desc)
-    yield 0, tmp + '::' + title, mid, None, thumbnail, desc
-
 def get_e_info(e):
   for ss in e.find_parent('tr').find_previous_siblings('tr'):
     desc = ''
@@ -89,16 +71,12 @@ def get_episode(t):
     yield i, _name, m['href'].split('=')[1], get_lang_data(subs[i]), thumb, d
 
 def get_all_episode(link):
-  s = BeautifulSoup(link, parse_only=SoupStrainer('table'))
+  s = BeautifulSoup(link, 'html5lib')
   l = s('table')
   #skip first and last tables
   for ll in l[1:-1]:
     for r in get_episode(ll):
       yield r
-
-def old_get_data(link):
-  for r in old_get_all_episode(link):
-    print r[1], r[4]
 
 def get_data(link):
   for r in get_all_episode(link):

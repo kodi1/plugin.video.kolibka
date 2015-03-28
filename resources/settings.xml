@@ -1,8 +1,12 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <settings>
-	<!-- General -->
-	<category label="30218">
-	  <setting label="30206" type="bool" id="prevedeni" default="false"/>
-	  <setting label="30207" type="enum" id="sorting" values="първо новите филми|първо новите преводи|по азбучен ред"/>
-	</category>
+      <!-- General -->
+      <category label="30218">
+        <setting label="30206" type="bool" id="prevedeni" default="false"/>
+        <setting label="30207" type="enum" id="sorting" values="първо новите филми|първо новите преводи|по азбучен ред"/>
+        <setting label="30208" type="bool" id="more_info" default="true"/>
+        <setting label="30209" type="bool"   id="viewset" default="true"/>
+        <setting label="30210" type="enum"   id="viewmode" values="Default|List|Big List|Thumbnail|Poster Wrap|Fanart|Media Info|Media Info 2|Media info 3" default="8"/>
+        <setting label=""      type="bool"   id="firstrun" visible="false" default="true"/>
+      </category>
 </settings>

@@ -12,11 +12,65 @@ import xbmcgui
 import xbmcplugin
 import xbmcaddon
 import xbmcvfs
-
+from ga import ga
 
 __addon_id__= 'plugin.video.kolibka'
 __Addon = xbmcaddon.Addon(__addon_id__)
 __settings__ = xbmcaddon.Addon(id='plugin.video.kolibka')
+__version__ = __Addon.getAddonInfo('version')
+__scriptname__ = __Addon.getAddonInfo('name')
+__cwd__ = xbmc.translatePath( __Addon.getAddonInfo('path') ).decode("utf-8")
+__resource__ = xbmc.translatePath( os.path.join( __cwd__, 'resources', 'lib' ) ).decode("utf-8")
+
+sys.path.insert(0, __resource__)
+from helper import get_all_episode as get_movs
+
+if __settings__.getSetting("firstrun") == "true":
+  __settings__.openSettings()
+  __settings__.setSetting("firstrun", "false")
+
+def log_my(*msg):
+  # xbmc.log((u"### !!!-> %s" % (msg,)).encode('utf-8'),level=xbmc.LOGNOTICE)
+  xbmc.log((u"### !!!-> %s" % (msg,)).encode('utf-8'), level=xbmc.LOGERROR)
+
+if 'true' == __settings__.getSetting('more_info'):
+  more_info = True
+  fanart = xbmc.translatePath(__Addon.getAddonInfo('path') + '/fanart.jpg')
+else:
+  fanart = None
+  more_info = False
+
+def update(name, dat, crash=None):
+  payload = {}
+  payload['an'] = __scriptname__
+  payload['av'] = __version__
+  payload['ec'] = name
+  payload['ea'] = 'movie_start'
+  payload['ev'] = '1'
+  payload['dl'] = urllib.quote_plus(dat.encode('utf-8'))
+  ga().update(payload, crash)
+
+def setviewmode():
+    if (xbmc.getSkinDir() != "skin.confluence" or
+        __settings__.getSetting("viewset") != 'true' or
+        more_info == False):
+        return
+    mode = {
+              '0': '52',
+              '1': '502',
+              '2': '51',
+              '3': '500',
+              '4': '501',
+              '5': '508',
+              '6': '504',
+              '7': '503',
+              '8': '515'
+            }
+    xbmc.executebuiltin('Container.SetViewMode(%s)' % mode[__settings__.getSetting("viewmode")])
+
+def select_1(lst):
+    dialog = xbmcgui.Dialog()
+    return dialog.select('Select subtitle', lst)
 
 prevedeni = __settings__.getSetting("prevedeni")
 sorting = __settings__.getSetting("sorting")
@@ -38,7 +92,7 @@ if sorting == '2':
   parameters = parameters + '&orderby=moviename'
 
 def CATEGORIES():
-    addDir('Търси във Колибка','http://kolibka.com/search.php?orderby=subsdate&q=',3,searchicon)
+    addDir('Търси във Колибка','http://kolibka.com/search.php?q=',3,searchicon)
     addDir('Вселена','http://kolibka.com/movies.php?cat=space',1,'http://kolibka.com/images/vselena1.jpg')
     addDir('Технологии','http://kolibka.com/movies.php?cat=technology',1,'http://kolibka.com/images/techno1.jpg')
     addDir('Енергия','http://kolibka.com/movies.php?cat=energy',1,'http://kolibka.com/images/energy1.jpg')
@@ -66,53 +120,56 @@ def INDEX(url):
     response = urllib2.urlopen(req)
     link=response.read()
     response.close()
+    thumbnail = 'DefaultVideo.png'
     #print link
 
-    newpage=re.compile('page=(.+?)&amp;orderby=movie&amp;.*\n.*alt="следваща страница"').findall(link)
+    newpage = re.compile(r'<a\shref="(\?.*?)">\n.*alt="следваща страница"').findall(link)
 
-    #Nachalo na obhojdaneto
-    pars = HTMLParser.HTMLParser()
-    matcht = re.compile('<table((.|[\r\n])+?)</table').findall(link)
-    for table in matcht:
-      titl = str(table)
+    if False == more_info:
+      #Nachalo na obhojdaneto
+      pars = HTMLParser.HTMLParser()
+      matcht = re.compile('<table((.|[\r\n])+?)</table').findall(link)
+      for table in matcht:
+        titl = str(table)
 
-      thumbnail='DefaultVideo.png'
-      matchp = re.compile('<img src=.*thumbs/(.+?)" alt="(.+?)"').findall(titl)
-      for thumb,title1 in matchp:
-        thumbnail = 'http://kolibka.com/thumbs/' + thumb
-        #title1=urllib.unquote_plus(title1).decode('unicode_escape', errors='ignore').encode('ascii', errors='ignore')
-        title1=pars.unescape(title1).decode('unicode_escape').encode('ascii', 'ignore')
-        title1=title1.replace('  ',' ')
-        title1=title1.replace('/   ','')
-        title1=title1.replace('/  ','')
-        title1=title1.replace(' / ','')
-        title1=title1.replace('a ( )','')
-        title1=title1.replace(' ( )','')
-        title1=title1.replace('-  ','- ')
-        title1=title1.replace('  ',' ')
-        title1=title1.replace('&quot;','"')
-        #print title1
+        thumbnail='DefaultVideo.png'
+        matchp = re.compile('<img src=.*thumbs/(.+?)" alt="(.+?)"').findall(titl)
+        for thumb,title1 in matchp:
+          thumbnail = 'http://kolibka.com/thumbs/' + thumb
+          #title1=urllib.unquote_plus(title1).decode('unicode_escape', errors='ignore').encode('ascii', errors='ignore')
+          title1=pars.unescape(title1).decode('unicode_escape').encode('ascii', 'ignore')
+          title1=title1.replace('  ',' ')
+          title1=title1.replace('/   ','')
+          title1=title1.replace('/  ','')
+          title1=title1.replace(' / ','')
+          title1=title1.replace('a ( )','')
+          title1=title1.replace(' ( )','')
+          title1=title1.replace('-  ','- ')
+          title1=title1.replace('  ',' ')
+          title1=title1.replace('&quot;','"')
+          #print title1
 
-      match = re.compile('mid=(.+?)" title="(.+?)">(.+?)<').findall(titl)
-      for mid,t,title2 in match:
-        #title2=urllib.unquote_plus(title2).decode('unicode_escape', errors='ignore').encode('ascii', errors='ignore')
-        title2=pars.unescape(title2).decode('unicode_escape').encode('ascii', 'ignore')
-        title2=title2.replace('&quot;','"')
-        title=title1+ ' :: '+title2
-        #print title
-        addLink(title,mid,2,thumbnail)
-    #Kray na obhojdaneto
+        match = re.compile('mid=(.+?)" title="(.+?)">(.+?)<').findall(titl)
+        for mid,t,title2 in match:
+          #title2=urllib.unquote_plus(title2).decode('unicode_escape', errors='ignore').encode('ascii', errors='ignore')
+          title2=pars.unescape(title2).decode('unicode_escape').encode('ascii', 'ignore')
+          title2=title2.replace('&quot;','"')
+          title=title1+ ' :: '+title2
+          #print title
+          addLink(title,mid,2,thumbnail)
+      #Kray na obhojdaneto
+    else:
+      for l in get_movs(link):
+        addLink(l[1], l[2], 2, l[4], l[5], l[3])
 
     #If results are on more pages
-    if newpage <> []:
+    if newpage:
       if 'http://kolibka.com/movies.php' in url:
-        lisearch = re.compile('(.+?)&page=.*').findall(url)
-        for exactmatch in lisearch:
-          url = exactmatch
-      url = url + '&page=' + newpage[0][0]
-      print 'URL OF THE NEXT PAGE IS' + url
-      thumbnail='DefaultFolder.png'
-      addDir('следваща страница>>',url,1,thumbnail)
+        url = re.sub(r'\?.*$', '', url)
+        url = url + re.sub(r'\&amp;', '&', newpage[0])
+        print 'URL OF THE NEXT PAGE IS: ' + url
+        thumbnail='DefaultFolder.png'
+        addDir('следваща страница>>',url,1,thumbnail)
 
 def VIDEOLINKS(mid,name):
     #Get Play URL and subtitles
@@ -134,12 +191,17 @@ def VIDEOLINKS(mid,name):
         file = ADDON_PATH + '/' + filename
         os.unlink(file)
 
-    #Save new sub to HDD
-    SUBS_PATH = xbmc.translatePath(__Addon.getAddonInfo('path') + "/kolibkasub.rar")
     try:
-      urllib.urlretrieve(suburl, SUBS_PATH)
+      response = urllib2.urlopen(suburl)
     except:
-      print "Timed-out exception: " + suburl
+       print "Timed-out exception: " + suburl
+
+    # Save new sub to HDD
+    SUBS_PATH = xbmc.translatePath(__Addon.getAddonInfo('path') + "/tmp_kolibka.bg." + response.info()['Content-Type'].split('/')[1])
+    file = open(SUBS_PATH, 'wb')
+    file.write(response.read())
+    file.close()
+
     if os.path.getsize(SUBS_PATH) > 0:
       xbmc.sleep(500)
       xbmc.executebuiltin(('XBMC.Extract("%s","%s")' % (SUBS_PATH, ADDON_PATH)).encode('utf-8'), True)
@@ -147,37 +209,30 @@ def VIDEOLINKS(mid,name):
       os.unlink(SUBS_PATH)
 
     #Rename subs
+    ll = []
     files = os.listdir(ADDON_PATH)
     patern = '.*\.(srt|sub)$'
     for filename in files:
       if re.match(patern, filename):
-        file = ADDON_PATH + '/' + filename
-        subfile = ADDON_PATH + '/kolibkasub.srt'
-        os.rename(file, subfile)
-    else:
-      if xbmcvfs.exists(SUBS_PATH):
-        os.rename(SUBS_PATH, ADDON_PATH + '/kolibkasub.zip')
-      SUBS_PATH = ADDON_PATH + '/kolibkasub.zip'
-      xbmc.executebuiltin(('XBMC.Extract("%s","%s")' % (SUBS_PATH, ADDON_PATH)).encode('utf-8'), True)
-      files = os.listdir(ADDON_PATH)
-      patern = '.*\.(srt|sub)$'
-      for filename in files:
-        if re.match(patern, filename):
-          file = ADDON_PATH + '/' + filename
-          subfile = ADDON_PATH + '/kolibkasub.bg.srt'
-          os.rename(file, subfile)
+        ll.append(filename)
+
+    snum = 0
+    if len(ll) > 1:
+      snum = select_1(ll)
 
     #Play Selected Item
     li = xbmcgui.ListItem(path=playurl)
     li.setInfo('video', { 'title': name })
     xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, xbmcgui.ListItem(path = playurl))
     #Set subtitles if any or disable them
-    if os.path.isfile(SUBS_PATH):
+    if len(ll) > 0:
       while not xbmc.Player().isPlaying():
         xbmc.sleep(100) #wait until video is being played
-        xbmc.Player().setSubtitles(subfile)
+        xbmc.Player().setSubtitles(os.path.join(ADDON_PATH, ll[snum]))
     else:
       xbmc.Player().showSubtitles(False)
+    if more_info:
+      update(name, mid)
 
 def SEARCH(url):
     keyb = xbmc.Keyboard('', 'Търсачка на клипове')
@@ -192,23 +247,41 @@ def SEARCH(url):
     else:
       addDir('Върнете се назад в главното меню за да продължите','','',"DefaultFolderBack.png")
 
-def addLink(name,url,mode,iconimage):
-    u=sys.argv[0]+"?url="+urllib.quote_plus(url)+"&mode="+str(mode)+"&name="+urllib.quote_plus(name)
-    ok=True
-    liz=xbmcgui.ListItem(name, iconImage="DefaultFolder.png", thumbnailImage=iconimage)
-    liz.setInfo( type="Video", infoLabels={ "Title": name } )
-    liz.setProperty("IsPlayable" , "true")
-    ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url=u,listitem=liz,isFolder=False)
-    return ok
+def addLink(name, url, mode, iconimage, desc = '', lang = None):
+    u = sys.argv[0] + "?url=" + urllib.quote_plus(url) + "&mode=" + str(mode) + "&name=" + urllib.quote_plus(name)
+    liz = xbmcgui.ListItem(name, iconImage="DefaultFolder.png", thumbnailImage=iconimage)
+    liz.setInfo(type="Video", infoLabels={ "Title": name })
 
+    if lang:
+      for t, arg in lang.items():
+        for k, v in arg.items():
+          if v:
+            # print "Set %s -> %s = %s" % (t, k , v)
+            desc = "[COLOR 7700FF00]%s: %s[/COLOR] " % (t, v) + desc
+
+    liz.setInfo(type="Video", infoLabels={ "plot": desc })
+    liz.setProperty('fanart_image', iconimage)
+    liz.setProperty("IsPlayable" , "true")
+
+    # liz.addStreamInfo('video', { 'codec': 'h264', 'aspect': 1.78, 'width': 1280, 'height': 720, 'duration': 60 })
+    # liz.addStreamInfo('audio', { 'codec': 'dts', 'language': 'en', 'channels': 2 })
+    # liz.addStreamInfo('subtitle', { 'language': 'en' })
+    # for t, arg in lang.items():
+     # for k, v in arg.items():
+       # if v is not None:
+         # liz.addStreamInfo(t, arg)
+    ok = xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=u, listitem=liz, isFolder=False)
+    return ok
 
 def addDir(name,url,mode,iconimage):
     u=sys.argv[0]+"?url="+urllib.quote_plus(url)+"&mode="+str(mode)+"&name="+urllib.quote_plus(name)
-    ok=True
     liz=xbmcgui.ListItem(name, iconImage="DefaultFolder.png", thumbnailImage=iconimage)
     liz.setInfo( type="Video", infoLabels={ "Title": name } )
-    ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url=u,listitem=liz,isFolder=True)
-    return ok
+
+    if fanart is not None:
+      liz.setProperty('fanart_image', fanart)
+
+    return xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url=u,listitem=liz,isFolder=True)
 
 def get_params():
     param=[]
@@ -253,14 +326,24 @@ if mode==None or url==None or len(url)<1:
 
 elif mode==1:
     print ""+url
-    INDEX(url)
+    try:
+      INDEX(url)
+    except:
+      update('exception', url, sys.exc_info())
+      raise
 
 elif mode==2:
     print ""+url
-    VIDEOLINKS(url,name)
+    try:
+      VIDEOLINKS(url,name)
+    except:
+      update('exception', url, sys.exc_info())
+      raise
 
 elif mode==3:
     print ""+url
     SEARCH(url)
 
+xbmcplugin.setContent(int(sys.argv[1]), 'movies')
+setviewmode()
 xbmcplugin.endOfDirectory(int(sys.argv[1]))

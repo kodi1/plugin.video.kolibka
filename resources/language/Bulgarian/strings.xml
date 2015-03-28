@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <strings>
-
     <!-- Plugin settings strings -->
     <string id="30206">Показвай само преведените филми</string>
     <string id="30207">Показвай...</string>
+    <string id="30208">Повече инфо</string>
+    <string id="30209">Ползвай Изглед - само за Confluence</string>
+    <string id="30210">Изглед</string>
+    <string id="30211">Показвай GA</string>
 </strings>
