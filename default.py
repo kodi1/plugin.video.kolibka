@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 import re
 import sys
 import os
@@ -16,11 +17,13 @@ from ga import ga
 
 __addon_id__= 'plugin.video.kolibka'
 __Addon = xbmcaddon.Addon(__addon_id__)
-__settings__ = xbmcaddon.Addon(id='plugin.video.kolibka')
+__settings__ = xbmcaddon.Addon(id=__addon_id__)
 __version__ = __Addon.getAddonInfo('version')
 __scriptname__ = __Addon.getAddonInfo('name')
-__cwd__ = xbmc.translatePath( __Addon.getAddonInfo('path') ).decode("utf-8")
-__resource__ = xbmc.translatePath( os.path.join( __cwd__, 'resources', 'lib' ) ).decode("utf-8")
+__cwd__ = xbmc.translatePath(__Addon.getAddonInfo('path')).decode('utf-8')
+__resource__ = xbmc.translatePath( os.path.join( __cwd__, 'resources', 'lib' ) ).decode('utf-8')
+searchicon = xbmc.translatePath(os.path.join(__cwd__, 'resources', 'search.png')).decode('utf-8')
+UA = 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:38.0) Gecko/20100101 Firefox/38.0'
 
 sys.path.insert(0, __resource__)
 from helper import get_all_episode as get_movs
@@ -35,7 +38,7 @@ def log_my(*msg):
 
 if 'true' == __settings__.getSetting('more_info'):
   more_info = True
-  fanart = xbmc.translatePath(__Addon.getAddonInfo('path') + '/fanart.jpg')
+  fanart = xbmc.translatePath(os.path.join(__cwd__,'fanart.jpg')).decode('utf-8')
 else:
   fanart = None
   more_info = False
@@ -74,12 +77,6 @@ def select_1(lst):
 
 prevedeni = __settings__.getSetting("prevedeni")
 sorting = __settings__.getSetting("sorting")
-
-searchicon = xbmc.translatePath(__Addon.getAddonInfo('path') + "/resources/search.png").decode("utf-8")
-SUBS_PATH = xbmc.translatePath(__Addon.getAddonInfo('path') + "/kolibkasub.rar").decode("utf-8")
-ADDON_PATH = xbmc.translatePath(__Addon.getAddonInfo('path')).decode("utf-8")
-
-UA = 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:38.0) Gecko/20100101 Firefox/38.0'
 
 parameters = ''
 if prevedeni == 'true':
@@ -179,38 +176,38 @@ def VIDEOLINKS(mid,name):
     print 'suburl:' + suburl
 
     #Delete old subs
-    files = os.listdir(ADDON_PATH)
+    files = os.listdir(__cwd__)
     patern = '.*\.(zip|rar)$'
     for filename in files:
       if re.match(patern, filename):
-        file = ADDON_PATH + '/' + filename
+        file = os.path.join(__cwd__, filename)
         os.unlink(file)
     patern = '.*\.(srt|sub)$'
     for filename in files:
       if re.match(patern, filename):
-        file = ADDON_PATH + '/' + filename
+        file = os.path.join(__cwd__, filename)
         os.unlink(file)
 
     try:
       response = urllib2.urlopen(suburl)
     except:
-       print "Timed-out exception: " + suburl
+      print "Timed-out exception: " + suburl
 
     # Save new sub to HDD
-    SUBS_PATH = xbmc.translatePath(__Addon.getAddonInfo('path') + "/tmp_kolibka.bg." + response.info()['Content-Type'].split('/')[1])
+    SUBS_PATH = xbmc.translatePath(os.path.join(__cwd__, 'tmp_kolibka.bg.') + response.info()['Content-Type'].split('/')[1])
     file = open(SUBS_PATH, 'wb')
     file.write(response.read())
     file.close()
 
     if os.path.getsize(SUBS_PATH) > 0:
       xbmc.sleep(500)
-      xbmc.executebuiltin(('XBMC.Extract("%s","%s")' % (SUBS_PATH, ADDON_PATH)).encode('utf-8'), True)
+      xbmc.executebuiltin(('XBMC.Extract("%s","%s")' % (SUBS_PATH, __cwd__)).encode('utf-8'), True)
     else:
       os.unlink(SUBS_PATH)
 
     #Rename subs
     ll = []
-    files = os.listdir(ADDON_PATH)
+    files = os.listdir(__cwd__)
     patern = '.*\.(srt|sub)$'
     for filename in files:
       if re.match(patern, filename):
@@ -228,7 +225,7 @@ def VIDEOLINKS(mid,name):
     if len(ll) > 0:
       while not xbmc.Player().isPlaying():
         xbmc.sleep(100) #wait until video is being played
-        xbmc.Player().setSubtitles(os.path.join(ADDON_PATH, ll[snum]))
+        xbmc.Player().setSubtitles(os.path.join(__cwd__, ll[snum]))
     else:
       xbmc.Player().showSubtitles(False)
     if more_info:
