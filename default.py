@@ -75,9 +75,9 @@ def select_1(lst):
 prevedeni = __settings__.getSetting("prevedeni")
 sorting = __settings__.getSetting("sorting")
 
-searchicon = xbmc.translatePath(__Addon.getAddonInfo('path') + "/resources/search.png")
-SUBS_PATH = xbmc.translatePath(__Addon.getAddonInfo('path') + "/kolibkasub.rar")
-ADDON_PATH = xbmc.translatePath(__Addon.getAddonInfo('path'))
+searchicon = xbmc.translatePath(__Addon.getAddonInfo('path') + "/resources/search.png").decode("utf-8")
+SUBS_PATH = xbmc.translatePath(__Addon.getAddonInfo('path') + "/kolibkasub.rar").decode("utf-8")
+ADDON_PATH = xbmc.translatePath(__Addon.getAddonInfo('path')).decode("utf-8")
 
 UA = 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:38.0) Gecko/20100101 Firefox/38.0'
 
