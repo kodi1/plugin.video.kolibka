@@ -175,6 +175,11 @@ def VIDEOLINKS(mid,name):
     print 'playurl:' + playurl
     print 'suburl:' + suburl
 
+    #Stop player if it's running
+    xbmc.executebuiltin('PlayerControl(Stop)')
+    while xbmc.Player().isPlaying():
+      xbmc.sleep(100) #wait until video is played
+
     #Delete old subs
     files = os.listdir(__cwd__)
     patern = '.*\.(zip|rar)$'
@@ -225,7 +230,8 @@ def VIDEOLINKS(mid,name):
     if len(ll) > 0:
       while not xbmc.Player().isPlaying():
         xbmc.sleep(100) #wait until video is being played
-        xbmc.Player().setSubtitles(os.path.join(__cwd__, ll[snum]))
+      xbmc.sleep(50)
+      xbmc.Player().setSubtitles(os.path.join(__cwd__, ll[snum]))
     else:
       xbmc.Player().showSubtitles(False)
     if more_info:
