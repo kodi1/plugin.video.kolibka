@@ -54,22 +54,10 @@ def update(name, dat, crash=None):
   ga().update(payload, crash)
 
 def setviewmode():
-    if (xbmc.getSkinDir() != "skin.confluence" or
-        __settings__.getSetting("viewset") != 'true' or
+    if (__settings__.getSetting("viewset") == '' or
         more_info == False):
         return
-    mode = {
-              '0': '52',
-              '1': '502',
-              '2': '51',
-              '3': '500',
-              '4': '501',
-              '5': '508',
-              '6': '504',
-              '7': '503',
-              '8': '515'
-            }
-    xbmc.executebuiltin('Container.SetViewMode(%s)' % mode[__settings__.getSetting("viewmode")])
+    xbmc.executebuiltin('Container.SetViewMode(%s)' % __settings__.getSetting("viewset"))
 
 def select_1(lst):
     dialog = xbmcgui.Dialog()
