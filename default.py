@@ -170,12 +170,7 @@ def VIDEOLINKS(mid,name):
 
     #Delete old subs
     files = os.listdir(__cwd__)
-    patern = '.*\.(zip|rar)$'
-    for filename in files:
-      if re.match(patern, filename):
-        file = os.path.join(__cwd__, filename)
-        os.unlink(file)
-    patern = '.*\.(srt|sub)$'
+    patern = '.*\.(srt|sub|zip|rar|html)$'
     for filename in files:
       if re.match(patern, filename):
         file = os.path.join(__cwd__, filename)
@@ -183,20 +178,26 @@ def VIDEOLINKS(mid,name):
 
     try:
       response = urllib2.urlopen(suburl)
+      sname = 'tmp_kolibka.bg'
+      ext = response.info()['Content-Type'].split('/')[1].split(';')[0]
+      if ext:
+        sname = sname + '.%s' % ext
     except:
+      response = None
       print "Timed-out exception: " + suburl
 
-    # Save new sub to HDD
-    SUBS_PATH = xbmc.translatePath(os.path.join(__cwd__, 'tmp_kolibka.bg.') + response.info()['Content-Type'].split('/')[1])
-    file = open(SUBS_PATH, 'wb')
-    file.write(response.read())
-    file.close()
+    if response:
+      # Save new sub to HDD
+      SUBS_PATH = xbmc.translatePath(os.path.join(__cwd__, sname))
+      file = open(SUBS_PATH, 'wb')
+      file.write(response.read())
+      file.close()
 
-    if os.path.getsize(SUBS_PATH) > 0:
-      xbmc.sleep(500)
-      xbmc.executebuiltin(('XBMC.Extract("%s","%s")' % (SUBS_PATH, __cwd__)).encode('utf-8'), True)
-    else:
-      os.unlink(SUBS_PATH)
+      if os.path.getsize(SUBS_PATH) > 0:
+        xbmc.sleep(500)
+        xbmc.executebuiltin(('XBMC.Extract("%s","%s")' % (SUBS_PATH, __cwd__)).encode('utf-8'), True)
+      else:
+        os.unlink(SUBS_PATH)
 
     #Rename subs
     ll = []
