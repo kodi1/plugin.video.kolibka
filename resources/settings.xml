@@ -4,8 +4,7 @@
       <category label="30218">
         <setting label="30206" type="bool" id="prevedeni" default="false"/>
         <setting label="30207" type="enum" id="sorting" values="първо новите филми|първо новите преводи|по азбучен ред"/>
-        <setting label="30208" type="bool" id="more_info" default="true"/>
-        <setting label="30209" type="number" id="viewset" default="515"/>
+        <setting label="30208" type="number" id="viewset" default="515"/>
         <setting label="" type="bool" id="firstrun" visible="false" default="true"/>
       </category>
 </settings>

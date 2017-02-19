@@ -61,14 +61,17 @@ def get_episode(t):
   #find all movie episode links
   movs = t.findAll('a', href=re.compile(r'(?:download.php\?mid=\d+)'))
   #find movie info
-  name, d, thumb = get_e_info(movs[0])
-  subs = movs[0].find_parent('td').find_next_sibling('td').findAll('font', face=re.compile(r'(times new roman)'))
-  for m in movs:
-    i = movs.index(m)
-    #get episode name
-    _name = m.get_text().encode('utf-8', 'replace').strip() + '::' + name
-    # return all episode data
-    yield i, _name, m['href'].split('=')[1], get_lang_data(subs[i]), thumb, d
+  if movs:
+    name, d, thumb = get_e_info(movs[0])
+    subs = movs[0].find_parent('td').find_next_sibling('td').findAll('font', face=re.compile(r'(times new roman)'))
+    for m in movs:
+      i = movs.index(m)
+      #get episode name
+      _name = m.get_text().encode('utf-8', 'replace').strip() + '::' + name
+      # return all episode data
+      yield i, _name, m['href'].split('=')[1], get_lang_data(subs[i]), thumb, d
+  else:
+    yield None
 
 def get_all_episode(link):
   s = BeautifulSoup(link, 'html5lib')
@@ -76,11 +79,14 @@ def get_all_episode(link):
   #skip first and last tables
   for ll in l[1:-1]:
     for r in get_episode(ll):
+      if r is None:
+        continue
       yield r
 
 def get_data(link):
   for r in get_all_episode(link):
     print r[1], r[4]
+    continue
 
 if __name__ == "__main__":
   os.system('cls')
@@ -89,7 +95,5 @@ if __name__ == "__main__":
   start = time.time()
   get_data(lll)
   mid = time.time()
-  old_get_data(lll)
-  end = time.time()
-  print "Time - new: %s old: %s" % (mid - start, end - mid)
+  print "Time - new: %s" % (mid - start)
   f.close()
