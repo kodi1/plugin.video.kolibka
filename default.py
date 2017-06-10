@@ -92,7 +92,7 @@ def CATEGORIES():
     addDir('Загадки','mysteries',1,'http://kolibka.com/images/zagadka1.jpg')
     addDir('БГ творчество','bg',1,'http://kolibka.com/images/bg1.jpg')
 
-def INDEX(url, search=False):
+def INDEX(url, page, search=False):
     if search:
       __s = requests.Session()
       r = __s.post('http://kolibka.com/search2.php', headers=_UA, data = {'search':url, 'orderby': _sorting[sorting]})
@@ -100,26 +100,27 @@ def INDEX(url, search=False):
       d = {'cat': url,
            'orderby': _sorting[sorting]
            }
+      if page:
+        d['page'] = page
       if prevedeni == 'true':
         d['showbg'] = 'yes'
+
+      log_my('params', str(d))
       r = requests.get('http://kolibka.com/movies.php', headers=_UA, params=d)
 
     link=r.text
     thumbnail = 'DefaultVideo.png'
 
-    newpage = re.compile(r'<a\shref="(\?.*?)">\n.*alt="следваща страница"').findall(link)
+    newpage = re.compile(u'<a\shref="\?.*page=(\d+).*?">\n.*alt="следваща страница"').findall(link)
 
     for l in get_movs(link):
       addLink(l[1], l[2], 2, l[4], l[5], l[3])
 
     #If results are on more pages
     if newpage:
-      if 'http://kolibka.com/movies.php' in url:
-        url = re.sub(r'\?.*$', '', url)
-        url = url + re.sub(r'\&amp;', '&', newpage[0])
-        print 'URL OF THE NEXT PAGE IS: ' + url
+        log_my ('Next page is: ' + newpage[0])
         thumbnail='DefaultFolder.png'
-        addDir('следваща страница>>',url,1,thumbnail)
+        addDir('следваща страница>>',url,1,thumbnail, newpage[0])
 
 def VIDEOLINKS(mid,name):
     #Get Play URL and subtitles
@@ -222,8 +223,11 @@ def addLink(name, url, mode, iconimage, desc = '', lang = None):
     ok = xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=u, listitem=liz, isFolder=False)
     return ok
 
-def addDir(name,url,mode,iconimage):
+def addDir(name,url,mode,iconimage,page=None):
     u=sys.argv[0]+"?url="+urllib.quote_plus(url)+"&mode="+str(mode)+"&name="+urllib.quote_plus(name)
+    if page:
+      u = u+"&page="+urllib.quote_plus(page)
+
     liz=xbmcgui.ListItem(name, iconImage="DefaultFolder.png", thumbnailImage=iconimage)
     liz.setInfo( type="Video", infoLabels={ "Title": name } )
 
@@ -254,6 +258,7 @@ params=get_params()
 url=None
 name=None
 mode=None
+page=None
 
 try:
     url=urllib.unquote_plus(params["url"])
@@ -267,14 +272,17 @@ try:
     mode=int(params["mode"])
 except:
     pass
-
+try:
+    page=int(params["page"])
+except:
+    pass
 
 if mode==None or url==None or len(url)<1:
     CATEGORIES()
 
 elif mode==1:
     try:
-      INDEX(url)
+      INDEX(url, page)
     except:
       update('exception', url, sys.exc_info())
       raise
@@ -295,7 +303,7 @@ elif mode==3:
 
 elif mode==4:
     try:
-      INDEX(url, True)
+      INDEX(url, page, True)
     except:
       update('exception', url, sys.exc_info())
       raise
